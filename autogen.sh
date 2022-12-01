@@ -1,7 +1,7 @@
 #!/bin/sh
-autoreconf -is
 rm -rf interflop-stdlib
 git submodule update --init --recursive
+mkdir -p m4
 ./install-stdlib.sh 2>&1 >install_stdlib.log
 if [ $? != 0 ]; then
     echo "Error while installing interflop-stdlib"
@@ -10,3 +10,4 @@ if [ $? != 0 ]; then
 else
     echo "Installing 'interflop-stdlib'"
 fi
+autoreconf -is

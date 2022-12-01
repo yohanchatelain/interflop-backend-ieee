@@ -27,11 +27,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "common/float_const.h"
-#include "common/fmaqApprox.h"
-#include "common/logger.h"
 #include "common/printf_specifier.h"
-#include "interflop.h"
+#include "interflop-stdlib/common/float_const.h"
+#include "interflop-stdlib/fma/fmaqApprox.h"
+#include "interflop-stdlib/interflop.h"
+#include "interflop-stdlib/iostream/logger.h"
 #include "interflop_ieee.h"
 
 typedef enum {
@@ -360,14 +360,14 @@ void INTERFLOP_IEEE_API(cast_double_to_float)(double a, float *b,
   debug_print_cast_double_to_float(context, CAST, "(float)", a, *b);
 }
 
-void INTERFLOP_IEEE_API(madd_float)(float a, float b, float c, float *res,
-                                    void *context) {
+void INTERFLOP_IEEE_API(fma_float)(float a, float b, float c, float *res,
+                                   void *context) {
   *res = (float)fmaApprox(a, b, c);
   debug_print_fma_float(context, FMA, "fma", a, b, c, *res);
 }
 
-void INTERFLOP_IEEE_API(madd_double)(double a, double b, double c, double *res,
-                                     void *context) {
+void INTERFLOP_IEEE_API(fma_double)(double a, double b, double c, double *res,
+                                    void *context) {
   *res = fmaApprox(a, b, c);
   debug_print_fma_double(context, FMA, "fma", a, b, c, *res);
 }
@@ -505,8 +505,8 @@ struct interflop_backend_interface_t INTERFLOP_IEEE_API(init)(void *context) {
     interflop_div_double : INTERFLOP_IEEE_API(div_double),
     interflop_cmp_double : INTERFLOP_IEEE_API(cmp_double),
     interflop_cast_double_to_float : INTERFLOP_IEEE_API(cast_double_to_float),
-    interflop_madd_float : INTERFLOP_IEEE_API(madd_float),
-    interflop_madd_double : INTERFLOP_IEEE_API(madd_double),
+    interflop_fma_float : INTERFLOP_IEEE_API(fma_float),
+    interflop_fma_double : INTERFLOP_IEEE_API(fma_double),
     interflop_enter_function : NULL,
     interflop_exit_function : NULL,
     interflop_user_call : NULL,
