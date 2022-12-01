@@ -13,7 +13,7 @@
 #ifndef __INTERFLOP_IEEE_H__
 #define __INTERFLOP_IEEE_H__
 
-#include "../../../interflop-stdlib/interflop_stdlib.h"
+#include "interflop-stdlib/interflop_stdlib.h"
 
 #define INTERFLOP_IEEE_API(name) interflop_ieee_##name
 
