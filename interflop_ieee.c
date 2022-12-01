@@ -63,6 +63,8 @@ typedef enum {
 #define FMT(X) _Generic(X, float : "b", double : "lb")
 #define FMT_SUBNORMAL_NORMALIZED(X) _Generic(X, float : "#b", double : "#lb")
 
+static File *logger_stderr;
+
 /* inserts the string <str_to_add> at position i */
 /* increments i by the size of str_to_add */
 void insert_string(char *dst, char *str_to_add, int *i) {
@@ -75,9 +77,9 @@ void insert_string(char *dst, char *str_to_add, int *i) {
 /* Auxiliary function to debug print that prints  */
 /* a new line if requested by option --print-new-line  */
 void debug_print_aux(void *context, char *fmt, va_list argp) {
-  vfprintf(stderr, fmt, argp);
+  interflop_vfprintf(logger_stderr, fmt, argp);
   if (((ieee_context_t *)context)->print_new_line) {
-    interflop_fprintf(stderr, "\n");
+    interflop_fprintf(logger_stderr, "\n");
   }
 }
 
@@ -393,7 +395,12 @@ static error_t parse_opt(int key, __attribute__((unused)) char *arg,
     ctx->debug = true;
     break;
   case KEY_DEBUG_BINARY:
-    ctx->debug_binary = true;
+    if (interflop_register_printf_specifier != Null) {
+      ctx->debug_binary = true;
+    } else {
+      logger_error("--debug-binary option forbiden if "
+                   "register_printf_specifier handler is not set");
+    }
     break;
   case KEY_NO_BACKEND_NAME:
     ctx->no_backend_name = true;
@@ -418,11 +425,11 @@ void INTERFLOP_IEEE_API(finalize)(void *context) {
   ieee_context_t *my_context = (ieee_context_t *)context;
 
   if (my_context->count_op) {
-    interflop_fprintf(stderr, "operations count:\n");
-    interflop_fprintf(stderr, "\t mul=%ld\n", my_context->mul_count);
-    interflop_fprintf(stderr, "\t div=%ld\n", my_context->div_count);
-    interflop_fprintf(stderr, "\t add=%ld\n", my_context->add_count);
-    interflop_fprintf(stderr, "\t sub=%ld\n", my_context->sub_count);
+    interflop_fprintf(logger_stderr, "operations count:\n");
+    interflop_fprintf(logger_stderr, "\t mul=%ld\n", my_context->mul_count);
+    interflop_fprintf(logger_stderr, "\t div=%ld\n", my_context->div_count);
+    interflop_fprintf(logger_stderr, "\t add=%ld\n", my_context->add_count);
+    interflop_fprintf(logger_stderr, "\t sub=%ld\n", my_context->sub_count);
   };
 }
 
@@ -474,6 +481,7 @@ void _ieee_check_stdlib(void) {
 
 void INTERFLOP_IEEE_API(pre_init)(File *stream, interflop_panic_t panic,
                                   void **context) {
+  logger_stderr = stream;
   interflop_set_handler("panic", panic);
   _ieee_check_stdlib();
 
@@ -487,7 +495,8 @@ void INTERFLOP_IEEE_API(pre_init)(File *stream, interflop_panic_t panic,
   *context = ctx;
 
   /* register %b format */
-  register_printf_bit();
+  if (interflop_register_printf_specifier != Null)
+    register_printf_bit();
 }
 
 struct interflop_backend_interface_t INTERFLOP_IEEE_API(init)(void *context) {

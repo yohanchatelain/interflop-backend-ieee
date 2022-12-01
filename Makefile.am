@@ -3,7 +3,7 @@ libinterflop_ieee_la_SOURCES = \
     interflop_ieee.c \
     common/printf_specifier.c \
     @INTERFLOP_STDLIB_PATH@/include/interflop-stdlib/iostream/logger.c
-libinterflop_ieee_la_CFLAGS = -DBACKEND_HEADER="interflop_ieee" -O3 -I@INTERFLOP_STDLIB_PATH@/include/
+libinterflop_ieee_la_CFLAGS = -DBACKEND_HEADER="interflop_ieee" -O3 -I@INTERFLOP_STDLIB_PATH@/include/ -fno-stack-protector
 if WALL_CFLAGS
 libinterflop_ieee_la_CFLAGS += -Wall -Wextra
 endif
