@@ -60,8 +60,20 @@ typedef enum {
 
 #define STRING_MAX 256
 
-#define FMT(X) _Generic(X, float : "b", double : "lb")
-#define FMT_SUBNORMAL_NORMALIZED(X) _Generic(X, float : "#b", double : "#lb")
+#define FMT(X)                                                                 \
+  (interflop_register_printf_specifier) ? _Generic(X, float                    \
+                                                   : "b", double               \
+                                                   : "lb")                     \
+                                        : _Generic(X, float                    \
+                                                   : "%f", double              \
+                                                   : "%f")
+#define FMT_SUBNORMAL_NORMALIZED(X)                                            \
+  (interflop_register_printf_specifier) ? _Generic(X, float                    \
+                                                   : "#b", double              \
+                                                   : "#lb")                    \
+                                        : _Generic(X, float                    \
+                                                   : "%.f", double             \
+                                                   : "%.f")
 
 static File *logger_stderr;
 
