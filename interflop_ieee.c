@@ -60,20 +60,8 @@ typedef enum {
 
 #define STRING_MAX 256
 
-#define FMT(X)                                                                 \
-  (interflop_register_printf_specifier) ? _Generic(X, float                    \
-                                                   : "b", double               \
-                                                   : "lb")                     \
-                                        : _Generic(X, float                    \
-                                                   : "%f", double              \
-                                                   : "%f")
-#define FMT_SUBNORMAL_NORMALIZED(X)                                            \
-  (interflop_register_printf_specifier) ? _Generic(X, float                    \
-                                                   : "#b", double              \
-                                                   : "#lb")                    \
-                                        : _Generic(X, float                    \
-                                                   : "%.f", double             \
-                                                   : "%.f")
+#define FMT(X) _Generic(X, float : "b", double : "lb")
+#define FMT_SUBNORMAL_NORMALIZED(X) _Generic(X, float : "#b", double : "#lb")
 
 static File *logger_stderr;
 
@@ -99,7 +87,7 @@ void debug_print_aux(void *context, char *fmt, va_list argp) {
   }
 }
 
-/* Debug print which replace %g by specific binary format %b */
+/* Debug print which replaces %g by specific binary format %b */
 /* if option --debug-binary is set */
 void debug_print(void *context, char *fmt_flt, char *fmt, ...) {
   va_list ap;
