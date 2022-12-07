@@ -159,7 +159,7 @@ void debug_print(void *context, char *fmt_flt, char *fmt, ...) {
           logger_info("%s", header);                                           \
       }                                                                        \
       if (typeop == ARITHMETIC) {                                              \
-        debug_print(context, a_float_fmt, "%g %s ", a, a, op);                 \
+        debug_print(context, a_float_fmt, "%g %s ", a, op);                    \
         debug_print(context, b_float_fmt, "%g -> ", b);                        \
         debug_print(context, c_float_fmt, "%g\n", c);                          \
       } else if (typeop == COMPARISON) {                                       \
