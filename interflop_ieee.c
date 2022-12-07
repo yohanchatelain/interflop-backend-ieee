@@ -65,6 +65,10 @@ typedef enum {
 
 static File *logger_stderr;
 
+const char *INTERFLOP_IEEE_API(get_backend_name)(void) { return "ieee"; }
+
+const char *INTERFLOP_IEEE_API(get_backend_version)(void) { return "1.x-dev"; }
+
 /* inserts the string <str_to_add> at position i */
 /* increments i by the size of str_to_add */
 void insert_string(char *dst, char *str_to_add, int *i) {
@@ -275,7 +279,7 @@ void INTERFLOP_IEEE_API(add_float)(const float a, const float b, float *c,
   ieee_context_t *my_context = (ieee_context_t *)context;
   *c = a + b;
   if (my_context->count_op)
-    my_context->add_count++;
+    __atomic_add_fetch(&my_context->add_count, 1, __ATOMIC_RELAXED);
   debug_print_float(context, ARITHMETIC, "+", a, b, *c);
 }
 
@@ -284,7 +288,7 @@ void INTERFLOP_IEEE_API(sub_float)(const float a, const float b, float *c,
   ieee_context_t *my_context = (ieee_context_t *)context;
   *c = a - b;
   if (my_context->count_op)
-    my_context->sub_count++;
+    __atomic_add_fetch(&my_context->sub_count, 1, __ATOMIC_RELAXED);
   debug_print_float(context, ARITHMETIC, "-", a, b, *c);
 }
 
@@ -293,7 +297,7 @@ void INTERFLOP_IEEE_API(mul_float)(const float a, const float b, float *c,
   ieee_context_t *my_context = (ieee_context_t *)context;
   *c = a * b;
   if (my_context->count_op)
-    my_context->mul_count++;
+    __atomic_add_fetch(&my_context->mul_count, 1, __ATOMIC_RELAXED);
   debug_print_float(context, ARITHMETIC, "*", a, b, *c);
 }
 
@@ -302,7 +306,7 @@ void INTERFLOP_IEEE_API(div_float)(const float a, const float b, float *c,
   ieee_context_t *my_context = (ieee_context_t *)context;
   *c = a / b;
   if (my_context->count_op)
-    my_context->div_count++;
+    __atomic_add_fetch(&my_context->div_count, 1, __ATOMIC_RELAXED);
   debug_print_float(context, ARITHMETIC, "/", a, b, *c);
 }
 
@@ -318,7 +322,7 @@ void INTERFLOP_IEEE_API(add_double)(const double a, const double b, double *c,
   ieee_context_t *my_context = (ieee_context_t *)context;
   *c = a + b;
   if (my_context->count_op)
-    my_context->add_count++;
+    __atomic_add_fetch(&my_context->add_count, 1, __ATOMIC_RELAXED);
   debug_print_double(context, ARITHMETIC, "+", a, b, *c);
 }
 
@@ -327,7 +331,7 @@ void INTERFLOP_IEEE_API(sub_double)(const double a, const double b, double *c,
   ieee_context_t *my_context = (ieee_context_t *)context;
   *c = a - b;
   if (my_context->count_op)
-    my_context->sub_count++;
+    __atomic_add_fetch(&my_context->sub_count, 1, __ATOMIC_RELAXED);
   debug_print_double(context, ARITHMETIC, "-", a, b, *c);
 }
 
@@ -336,7 +340,7 @@ void INTERFLOP_IEEE_API(mul_double)(const double a, const double b, double *c,
   ieee_context_t *my_context = (ieee_context_t *)context;
   *c = a * b;
   if (my_context->count_op)
-    my_context->mul_count++;
+    __atomic_add_fetch(&my_context->mul_count, 1, __ATOMIC_RELAXED);
   debug_print_double(context, ARITHMETIC, "*", a, b, *c);
 }
 
@@ -345,7 +349,7 @@ void INTERFLOP_IEEE_API(div_double)(const double a, const double b, double *c,
   ieee_context_t *my_context = (ieee_context_t *)context;
   *c = a / b;
   if (my_context->count_op)
-    my_context->div_count++;
+    __atomic_add_fetch(&my_context->div_count, 1, __ATOMIC_RELAXED);
   debug_print_double(context, ARITHMETIC, "/", a, b, *c);
 }
 
@@ -364,13 +368,19 @@ void INTERFLOP_IEEE_API(cast_double_to_float)(double a, float *b,
 
 void INTERFLOP_IEEE_API(fma_float)(float a, float b, float c, float *res,
                                    void *context) {
+  ieee_context_t *my_context = (ieee_context_t *)context;
   *res = (float)fmaApprox(a, b, c);
+  if (my_context->count_op)
+    __atomic_add_fetch(&my_context->fma_count, 1, __ATOMIC_RELAXED);
   debug_print_fma_float(context, FMA, "fma", a, b, c, *res);
 }
 
 void INTERFLOP_IEEE_API(fma_double)(double a, double b, double c, double *res,
                                     void *context) {
+  ieee_context_t *my_context = (ieee_context_t *)context;
   *res = fmaApprox(a, b, c);
+  if (my_context->count_op)
+    __atomic_add_fetch(&my_context->fma_count, 1, __ATOMIC_RELAXED);
   debug_print_fma_double(context, FMA, "fma", a, b, c, *res);
 }
 
@@ -430,6 +440,7 @@ void INTERFLOP_IEEE_API(finalize)(void *context) {
     interflop_fprintf(logger_stderr, "\t div=%ld\n", my_context->div_count);
     interflop_fprintf(logger_stderr, "\t add=%ld\n", my_context->add_count);
     interflop_fprintf(logger_stderr, "\t sub=%ld\n", my_context->sub_count);
+    interflop_fprintf(logger_stderr, "\t fma=%ld\n", my_context->fma_count);
   };
 }
 
@@ -444,6 +455,17 @@ static void init_context(ieee_context_t *context) {
   context->div_count = 0;
   context->add_count = 0;
   context->sub_count = 0;
+  context->fma_count = 0;
+}
+
+void INTERFLOP_IEEE_API(configure)(ieee_conf_t conf, void *context) {
+  ieee_context_t *ctx = (ieee_context_t *)context;
+  ctx->debug = conf.debug;
+  ctx->debug_binary = conf.debug_binary;
+  ctx->no_backend_name = conf.no_backend_name;
+  ctx->print_new_line = conf.print_new_line;
+  ctx->print_subnormal_normalized = conf.print_subnormal_normalized;
+  ctx->count_op = conf.count_op;
 }
 
 static struct argp argp = {options, parse_opt, "", "", NULL, NULL, NULL};
