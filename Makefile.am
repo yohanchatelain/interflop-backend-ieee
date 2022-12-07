@@ -16,3 +16,4 @@ if LINK_INTERFLOP_STDLIB
 libinterflop_ieee_la_LIBADD += @INTERFLOP_STDLIB_PATH@/lib/libinterflop_stdlib.la
 endif
 library_includedir =$(includedir)/
+include_HEADERS = interflop_ieee.h
