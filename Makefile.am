@@ -8,7 +8,7 @@ libinterflop_ieee_la_CFLAGS = \
     -I@INTERFLOP_STDLIB_PATH@/include/ \
     -fno-stack-protector -O3
 if WALL_CFLAGS
-libinterflop_ieee_la_CFLAGS += -Wall -Wextra
+libinterflop_ieee_la_CFLAGS += -Wall -Wextra -g
 endif
 libinterflop_ieee_la_LIBADD = \
      @INTERFLOP_STDLIB_PATH@/lib/libinterflop_fma.la
