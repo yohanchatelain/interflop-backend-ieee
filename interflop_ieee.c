@@ -29,7 +29,7 @@
 
 #include "common/printf_specifier.h"
 #include "interflop-stdlib/common/float_const.h"
-#include "interflop-stdlib/fma/fmaqApprox.h"
+#include "interflop-stdlib/fma/interflop_fma.h"
 #include "interflop-stdlib/interflop.h"
 #include "interflop-stdlib/iostream/logger.h"
 #include "interflop_ieee.h"
@@ -369,7 +369,7 @@ void INTERFLOP_IEEE_API(cast_double_to_float)(double a, float *b,
 void INTERFLOP_IEEE_API(fma_float)(float a, float b, float c, float *res,
                                    void *context) {
   ieee_context_t *my_context = (ieee_context_t *)context;
-  *res = (float)fmaApprox(a, b, c);
+  *res = interflop_fma_binary32(a, b, c);
   if (my_context->count_op)
     __atomic_add_fetch(&my_context->fma_count, 1, __ATOMIC_RELAXED);
   debug_print_fma_float(context, FMA, "fma", a, b, c, *res);
@@ -378,7 +378,7 @@ void INTERFLOP_IEEE_API(fma_float)(float a, float b, float c, float *res,
 void INTERFLOP_IEEE_API(fma_double)(double a, double b, double c, double *res,
                                     void *context) {
   ieee_context_t *my_context = (ieee_context_t *)context;
-  *res = fmaApprox(a, b, c);
+  *res = interflop_fma_binary64(a, b, c);
   if (my_context->count_op)
     __atomic_add_fetch(&my_context->fma_count, 1, __ATOMIC_RELAXED);
   debug_print_fma_double(context, FMA, "fma", a, b, c, *res);
